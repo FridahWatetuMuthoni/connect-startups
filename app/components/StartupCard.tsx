@@ -1,65 +1,67 @@
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
-
-type StartUp = {
-  id: number;
-  image: string;
-  category: string;
-  datePublished: string;
-  views: number;
-  username: string;
-  userProfile: string;
-  title: string;
-  description: string;
-};
+import { StartUp } from "../../types/startup";
 
 function StartupCard({ startup }: { startup: StartUp }) {
-  const {
-    category,
-    title,
-    description,
-    datePublished,
-    views,
-    username,
-    userProfile,
-  } = startup;
+  const { _id, slug, category, title, pitch, datePublished, views, author } =
+    startup;
+
+  console.log(slug);
+
+  const options: Intl.DateTimeFormatOptions = {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  };
+
+  const date = new Date(datePublished).toLocaleDateString("en-US", options);
 
   return (
     <div className="rounded overflow-hidden shadow-lg flex flex-col bg-white w-full max-w-md md:max-w-lg lg:max-w-xl h-full">
-      <div className="relative">
-        <Image
-          className="w-full h-48 object-cover"
-          src={startup.image}
-          alt={title}
-          width={500}
-          height={200}
-        />
-        <div className="absolute bottom-0 top-0 right-0 left-0 bg-gray-900 opacity-25 hover:opacity-10 transition duration-300"></div>
-        <div className="text-xs absolute top-0 right-0 bg-indigo-600 px-4 py-2 text-white mt-3 mr-3 hover:bg-white hover:text-indigo-600 transition duration-500 ease-in-out">
-          {category}
+      <Link href={`/startup/${_id}`}>
+        <div className="relative">
+          <Image
+            className="w-full h-48 object-cover"
+            src={startup.image}
+            alt={title}
+            width={500}
+            height={200}
+          />
+          <div className="absolute bottom-0 top-0 right-0 left-0 bg-gray-900 opacity-25 hover:opacity-10 transition duration-300"></div>
+          <div className="text-xs absolute top-0 right-0 bg-indigo-600 px-4 py-2 text-white mt-3 mr-3 hover:bg-white hover:text-indigo-600 transition duration-500 ease-in-out">
+            {category}
+          </div>
         </div>
-      </div>
+      </Link>
+
       <div className="px-6 py-4 flex flex-col flex-grow">
         <h2 className="font-medium text-lg text-gray-900 hover:text-indigo-600 transition duration-500 ease-in-out mb-2">
-          {title}
+          <Link href={`/startup/${_id}`}> {title}</Link>
         </h2>
         <p className="text-gray-500 text-sm mb-4 flex-grow">
-          {description.slice(0, 150)}...
+          <Link href={`/startup/${_id}`}> {pitch.slice(0, 150)}...</Link>
         </p>
         <div className="flex items-center space-x-3">
-          <Image
-            className="rounded-full w-8 h-8 object-cover"
-            src={userProfile}
-            alt={username}
-            width={32}
-            height={32}
-          />
-          <span className="text-sm font-medium text-gray-800">{username}</span>
+          <Link
+            href={`/author/${author._id}`}
+            className="flex items-center gap-2"
+          >
+            <Image
+              className="rounded-full w-8 h-8 object-cover"
+              src={author.image}
+              alt={author.name}
+              width={32}
+              height={32}
+            />
+            <span className="text-sm font-medium text-gray-800">
+              {author.name}
+            </span>
+          </Link>
         </div>
       </div>
       <div className="px-6 py-3 flex justify-between items-center bg-gray-100 text-sm text-gray-600">
-        <span>{datePublished}</span>
+        <span>{date}</span>
         <span className="flex items-center justify-center gap-2">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -77,7 +79,7 @@ function StartupCard({ startup }: { startup: StartUp }) {
       </div>
       <div className="px-6 py-3 flex justify-between items-center bg-gray-200 mt-auto">
         <Link
-          href={`/startup/${startup.id}`}
+          href={`/startup/${_id}`}
           className="text-indigo-600 text-sm font-medium hover:underline"
         >
           View Full Details

@@ -5,7 +5,6 @@ import Image from "next/image";
 
 async function Navbar() {
   const session = await auth();
-  console.log(session);
 
   return (
     <header className="text-gray-600 body-font">

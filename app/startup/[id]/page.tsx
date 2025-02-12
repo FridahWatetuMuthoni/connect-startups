@@ -1,25 +1,32 @@
 import Link from "next/link";
 import React from "react";
 import Image from "next/image";
-import startups from "@/data";
+import { StartUp } from "../../../types/startup";
+import { client } from "../../../sanity/lib/client";
+import { STARTUP_QUERY_WITH_ID } from "../../../sanity/lib/queries";
+import markdownit from "markdown-it";
+import DOMPurify from "isomorphic-dompurify";
 
-type StartUp = {
-  id: number;
-  image: string;
-  category: string;
-  datePublished: string;
-  views: number;
-  username: string;
-  userProfile: string;
-  title: string;
-  description: string;
-};
+async function StartupDetail({ params }: { params: Promise<{ id: string }> }) {
+  const id = (await params).id;
 
-function StartupDetail({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = React.use(params);
-  const startup: StartUp = startups.filter(
-    (startup) => startup.id === Number(id)
-  )[0];
+  const startup: StartUp = await client.fetch(STARTUP_QUERY_WITH_ID, { id });
+  const md = markdownit();
+
+  const options: Intl.DateTimeFormatOptions = {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  };
+
+  const date = new Date(startup.datePublished).toLocaleDateString(
+    "en-US",
+    options
+  );
+  const result = md.render(startup.pitch || "");
+  const sanitizedHTML = DOMPurify.sanitize(result, {
+    USE_PROFILES: { html: true },
+  });
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white shadow-md rounded-lg">
@@ -43,18 +50,20 @@ function StartupDetail({ params }: { params: Promise<{ id: string }> }) {
           {startup.title}
         </h1>
         <div className="text-sm text-gray-600 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Image
-              className="rounded-full w-8 h-8 object-cover"
-              src={startup.userProfile}
-              alt={startup.username}
-              width={32}
-              height={32}
-            />
-            <span>{startup.username}</span>
-          </div>
+          <Link href={`/author/${startup.author._id}`}>
+            <div className="flex items-center space-x-2">
+              <Image
+                className="rounded-full w-8 h-8 object-cover"
+                src={startup.author.image}
+                alt={startup.author.name}
+                width={32}
+                height={32}
+              />
+              <span>{startup.author.name}</span>
+            </div>
+          </Link>
           <div className="flex items-center justify-center gap-5">
-            {startup.datePublished}
+            {date}
             <span className="flex items-center justify-center gap-1">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -75,7 +84,9 @@ function StartupDetail({ params }: { params: Promise<{ id: string }> }) {
 
       {/* Blog Content */}
       <div className="p-4 text-gray-700 leading-relaxed">
-        <p>{startup.description}</p>
+        <article className="markdown">
+          <div dangerouslySetInnerHTML={{ __html: sanitizedHTML }} />
+        </article>
       </div>
 
       {/* Back to Home Button */}

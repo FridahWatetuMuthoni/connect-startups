@@ -8,7 +8,8 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false);
 
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/";
+  console.log(searchParams);
+  const callbackUrl = searchParams.get("search") || "/";
 
   return (
     <div className="min-h-screen bg-white flex flex-col justify-center py-12 sm:px-6 lg:px-8">

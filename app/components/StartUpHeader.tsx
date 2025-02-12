@@ -1,6 +1,6 @@
 import React from "react";
 
-function StartUpHeader() {
+function StartUpHeader({ query }: { query: string | string[] | undefined }) {
   return (
     <div className="border-b mb-5 flex justify-between text-sm">
       <div className="text-indigo-600 flex items-center pb-2 pr-2 border-b-2 border-indigo-600 uppercase">
@@ -40,7 +40,7 @@ function StartUpHeader() {
           </g>
         </svg>
         <a href="#" className="font-semibold inline-block">
-          All Startups
+          {query ? `Search Results For ${query}` : " All Startups"}
         </a>
       </div>
       <a href="#">See All</a>
