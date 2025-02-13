@@ -3,13 +3,36 @@ import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import React, { useState } from "react";
 import { login } from "../../../lib/actions/auth";
+import { signIn } from "next-auth/react";
 
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
+  const [user, setUser] = useState({
+    email: "",
+    password: "",
+  });
 
   const searchParams = useSearchParams();
   console.log(searchParams);
   const callbackUrl = searchParams.get("search") || "/";
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUser({ ...user, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const response = await signIn("credentials", {
+      email: user.email,
+      password: user.password,
+      callbackUrl: "/",
+    });
+
+    if (response?.error) {
+      console.log(response.error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -63,7 +86,7 @@ function Login() {
             </div>
           </div>
           {/* Form */}
-          <form className="space-y-6">
+          <form className="space-y-6" onSubmit={handleSubmit}>
             {/* Email */}
             <div>
               <label
@@ -77,6 +100,8 @@ function Login() {
                 id="email"
                 className="mt-1 block w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 focus:outline-indigo-600"
                 required
+                name="email"
+                onChange={(e) => handleChange(e)}
               />
             </div>
             {/* Password */}
@@ -93,6 +118,8 @@ function Login() {
                   id="password"
                   className="block w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 focus:outline-indigo-600"
                   required
+                  name="password"
+                  onChange={(e) => handleChange(e)}
                 />
                 <button
                   type="button"

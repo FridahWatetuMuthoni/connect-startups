@@ -1,5 +1,6 @@
 import Startups from "@/components/Startups";
 import Search from "@/components/Search";
+import { auth } from "../auth";
 
 export default async function Home({
   searchParams,
@@ -8,6 +9,9 @@ export default async function Home({
 }) {
   const filters = await searchParams;
   const query = typeof filters.query === "string" ? filters.query : "";
+
+  const session = await auth;
+  console.log(session);
 
   return (
     <>

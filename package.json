@@ -16,6 +16,8 @@
   "dependencies": {
     "@sanity/image-url": "^1.1.0",
     "@sanity/vision": "^3.75.0",
+    "@uiw/react-md-editor": "^4.0.5",
+    "axios": "^1.7.9",
     "isomorphic-dompurify": "^2.21.0",
     "markdown-it": "^14.1.0",
     "next": "15.1.6",

@@ -53,3 +53,25 @@ export const AUTHOR_QUERY_WITH_ID = defineQuery(
     }
   `
 );
+
+export const AUTHOR_BY_GITHUB_ID_QUERY = defineQuery(`
+  *[_type == 'author' && githubId == $githubId][0] {
+  _id,
+  name,
+  username,
+  email,
+  image,
+  bio
+  }
+  `);
+
+export const AUTHOR_BY_GOOGLE_ID_QUERY = defineQuery(`
+  *[_type == 'author' && googleId == $googleId][0]{
+  _id,
+  name,
+  username,
+  email,
+  image,
+  bio
+  }
+  `);

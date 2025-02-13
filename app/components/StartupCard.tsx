@@ -4,10 +4,7 @@ import React from "react";
 import { StartUp } from "../../types/startup";
 
 function StartupCard({ startup }: { startup: StartUp }) {
-  const { _id, slug, category, title, pitch, datePublished, views, author } =
-    startup;
-
-  console.log(slug);
+  const { _id, category, title, pitch, datePublished, views, author } = startup;
 
   const options: Intl.DateTimeFormatOptions = {
     month: "long",

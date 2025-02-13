@@ -2,9 +2,14 @@ import Link from "next/link";
 import React from "react";
 import { auth, signOut } from "../../auth";
 import Image from "next/image";
+import { DefaultSession } from "next-auth";
+
+type ExtendedSession = DefaultSession & {
+  authorId?: string;
+};
 
 async function Navbar() {
-  const session = await auth();
+  const session = (await auth()) as ExtendedSession | null;
 
   return (
     <header className="text-gray-600 body-font">
@@ -17,7 +22,7 @@ async function Navbar() {
             <>
               <Link
                 className="mr-5 hover:text-gray-900"
-                href={`/user/${session?.user.id}`}
+                href={`/author/${session?.authorId}`}
               >
                 <div className="flex items-center">
                   <Image
@@ -33,7 +38,7 @@ async function Navbar() {
                 </div>
               </Link>
 
-              <Link className="mr-5 hover:text-gray-900" href="/startup/create">
+              <Link className="mr-5 hover:text-gray-900" href="/create">
                 <span>Create</span>
               </Link>
               <form

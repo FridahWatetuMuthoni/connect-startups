@@ -6,10 +6,6 @@ export const author = defineType({
   type: "document",
   fields: [
     defineField({
-      name: "id",
-      type: "string",
-    }),
-    defineField({
       name: "name",
       type: "string",
     }),
@@ -27,6 +23,18 @@ export const author = defineType({
     }),
     defineField({
       name: "bio",
+      type: "string",
+    }),
+    defineField({
+      name: "password",
+      type: "string",
+    }),
+    defineField({
+      name: "githubId",
+      type: "string",
+    }),
+    defineField({
+      name: "googleId",
       type: "string",
     }),
   ],
