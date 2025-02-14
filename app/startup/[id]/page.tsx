@@ -88,7 +88,7 @@ function StartupDetail({ params }: { params: Promise<{ id: string }> }) {
 
       {/* Title & Meta Info */}
       <div className="p-4">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
           {startup?.title}
         </h1>
         <div className="text-sm text-gray-600 flex items-center justify-between">

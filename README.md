@@ -134,3 +134,148 @@ npm install server-only
 
 create a new file in sanity/lib called live.ts
 4:02:48
+
+## NextAuth callbacks
+
+```tsx
+import NextAuth from "next-auth"
+import Google from "next-auth/providers/google"
+
+export const { handlers, auth } = NextAuth({
+  providers: [
+    Google({
+      profile(profile) {
+        return { role: profile.role ?? "user", ... }
+      },
+    })
+  ],
+  callbacks: {
+    jwt({ token, user }) {
+      if(user) token.role = user.role
+      return token
+    },
+    session({ session, token }) {
+      session.user.role = token.role
+      return session
+    }
+  }
+})
+
+```
+
+## Prisma User model Next Auth
+
+```ts
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  role          String?  // New column
+  accounts      Account[]
+  sessions      Session[]
+}
+```
+
+## Adding Prisma to NextAuth
+
+```ts
+import NextAuth from "next-auth"
+import Google from "next-auth/providers/google"
+import prisma from "lib/prisma"
+
+export const { handlers, auth } = NextAuth({
+  adapter: PrismaAdapter(prisma),
+  providers: [
+    Google({
+      profile(profile) {
+        return { role: profile.role ?? "user", ... }
+      }
+    })
+  ],
+  callbacks: {
+    session({ session, user }) {
+      session.user.role = user.role
+      return session
+    }
+  }
+})
+```
+
+## Getting session from NextAuth
+
+```tsx
+import { auth } from "@/auth";
+
+export default async function Page() {
+  const session = await auth();
+
+  if (session?.user?.role === "admin") {
+    return <p>You are an admin, welcome!</p>;
+  }
+
+  return <p>You are not authorized to view this page!</p>;
+}
+```
+
+## Credentials NextAuth
+
+```ts
+import NextAuth from "next-auth";
+import Credentials from "next-auth/providers/credentials";
+// Your own logic for dealing with plaintext password strings; be careful!
+import { saltAndHashPassword } from "@/utils/password";
+
+export const { handlers, signIn, signOut, auth } = NextAuth({
+  providers: [
+    Credentials({
+      // You can specify which fields should be submitted, by adding keys to the `credentials` object.
+      // e.g. domain, username, password, 2FA token, etc.
+      credentials: {
+        email: {},
+        password: {},
+      },
+      authorize: async (credentials) => {
+        let user = null;
+
+        // logic to salt and hash password
+        const pwHash = saltAndHashPassword(credentials.password);
+
+        // logic to verify if the user exists
+        user = await getUserFromDb(credentials.email, pwHash);
+
+        if (!user) {
+          // No user found, so this is their first attempt to login
+          // Optionally, this is also the place you could do a user registration
+          throw new Error("Invalid credentials.");
+        }
+
+        // return user object with their profile data
+        return user;
+      },
+    }),
+  ],
+});
+```
+
+## UseActionState
+
+```tsx
+import { useActionState } from "react";
+
+export function Component() {
+  const [state, dispatch, isPending] = useActionState(
+    action,
+    initialState,
+    permalink
+  );
+}
+```
+
+- state => the current state of the form
+- dispatch => action that we can dispatch/trigger in our form
+- isPending => Boolean indicating whether the form is pending
+- action => action function that is triggered when the form is submitted
+- initialState => initial state of the form
+- permalink => permalink for the form

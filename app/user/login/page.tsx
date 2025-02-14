@@ -1,20 +1,21 @@
 "use client";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import React, { useState } from "react";
-import { login } from "../../../lib/actions/auth";
+import { social_login } from "../../../lib/actions/auth";
 import { signIn } from "next-auth/react";
 
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
   const [user, setUser] = useState({
     email: "",
     password: "",
   });
 
   const searchParams = useSearchParams();
-  console.log(searchParams);
   const callbackUrl = searchParams.get("search") || "/";
+  const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUser({ ...user, [e.target.name]: e.target.value });
@@ -23,15 +24,35 @@ function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const response = await signIn("credentials", {
+    const result = await signIn("credentials", {
       email: user.email,
       password: user.password,
       callbackUrl: "/",
+      redirect: false,
     });
-
-    if (response?.error) {
-      console.log(response.error);
+    console.log(result);
+    if (result?.error) {
+      if (result.error == "Configuration") {
+        setError("Invalid email or password");
+      } else {
+        setError("Something went wrong, refresh and try again");
+      }
+    } else {
+      router.push("/");
+      router.refresh();
     }
+    // const response = await credentials_login({
+    //   email: user.email,
+    //   password: user.password,
+    // });
+
+    // if (response?.message) {
+    //   console.log(response.message);
+    //   setError(response?.message);
+    // } else {
+    //   update();
+    //   router.push("/");
+    // }
   };
 
   return (
@@ -48,7 +69,7 @@ function Login() {
 
           <div className="mt-7 flex gap-2 items-center justify-center">
             <button
-              onClick={() => login("github", callbackUrl)}
+              onClick={() => social_login("github", callbackUrl)}
               className="inline-flex h-10 w-full items-center justify-center gap-2 rounded border border-slate-300 bg-white p-2 text-xs font-medium text-black outline-none focus:ring-2 focus:ring-[#333] focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <Image
@@ -62,7 +83,7 @@ function Login() {
             </button>
 
             <button
-              onClick={() => login("google", callbackUrl)}
+              onClick={() => social_login("google", callbackUrl)}
               className="inline-flex h-10 w-full items-center justify-center gap-2 rounded border border-slate-300 bg-white p-2 text-xs font-medium text-black outline-none focus:ring-2 focus:ring-[#333] focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <Image
@@ -86,6 +107,11 @@ function Login() {
             </div>
           </div>
           {/* Form */}
+          {error && (
+            <p className="text-red-500 text-sm my-3 italic text-center">
+              {error}
+            </p>
+          )}
           <form className="space-y-6" onSubmit={handleSubmit}>
             {/* Email */}
             <div>

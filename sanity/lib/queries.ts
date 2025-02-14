@@ -75,3 +75,23 @@ export const AUTHOR_BY_GOOGLE_ID_QUERY = defineQuery(`
   bio
   }
   `);
+
+export const STARTUP_QUERY_BY_AUTHOR = defineQuery(
+  `*[_type == 'startup' && author._ref == $id ] | order(datePublished desc) {
+      _id,
+      title,
+      slug,
+      datePublished,
+      author -> {
+        _id, 
+        name, 
+        image, 
+        bio
+      },
+      views,
+      description,
+      pitch,
+      category,
+      image
+  }`
+);

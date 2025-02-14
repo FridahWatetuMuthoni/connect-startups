@@ -4,6 +4,7 @@ import "./globals.css";
 import "easymde/dist/easymde.min.css";
 import Navbar from "./components/Navbar";
 import { SessionProvider } from "next-auth/react";
+import { auth } from "../auth";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,17 +22,19 @@ export const metadata: Metadata = {
     "It is a place where different people all over the world showcase their startups",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await auth(); // Fetch session on the server
+
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <SessionProvider>
+        <SessionProvider session={session}>
           {" "}
           <Navbar />
           {children}

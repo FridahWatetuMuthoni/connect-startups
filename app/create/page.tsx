@@ -1,31 +1,54 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useActionState } from "react";
 import MDEditor from "@uiw/react-md-editor";
+import { formSchema } from "../../lib/validation";
+import { ZodError } from "zod";
+import { useRouter } from "next/navigation";
+import { createPitch } from "../../lib/actions/startup";
 
 export default function StartupForm() {
-  const [formData, setFormData] = useState({
-    title: "",
-    slug: "",
-    author: "",
-    views: "",
-    description: "",
-    category: "",
-    image: "",
-    pitch: "",
-  });
-
   const [pitch, setPitch] = useState("");
+  const router = useRouter();
 
-  const isPending = false;
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const initialState = {
+    error: "",
+    status: "INITIAL",
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Submitted data:", formData);
+  const handleFormSubmit = async (prevState, formData: FormData) => {
+    try {
+      const formValues = {
+        title: formData.get("title") as string,
+        description: formData.get("description") as string,
+        category: formData.get("category") as string,
+        image: formData.get("image") as string,
+        pitch,
+      };
+
+      await formSchema.parseAsync(formValues);
+      console.log(formValues);
+
+      const result = await createPitch(prevState, formData, pitch);
+      if (result.status == "SUCCESS") {
+        router.push(`/startup/${result._id}`);
+      }
+
+      return result;
+    } catch (error) {
+      if (error instanceof ZodError) {
+        const fieldErrors = error.flatten().fieldErrors;
+        // setErrors(fieldErrors as unknown as Record<string, string>)
+        return { ...prevState, errors: fieldErrors, status: "ERROR" };
+      }
+      return { errors: {}, status: "ERROR" };
+    } finally {
+    }
   };
+
+  const [state, formAction, isPending] = useActionState(
+    handleFormSubmit,
+    initialState
+  );
 
   return (
     <div className="min-h-screen bg-white flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -36,7 +59,7 @@ export default function StartupForm() {
               Submit Your Startup
             </h2>
           </div>
-          <form className="space-y-6" onSubmit={handleSubmit}>
+          <form className="space-y-6" action={formAction}>
             <div>
               <label
                 className="block text-sm font-medium text-gray-700"
@@ -44,13 +67,18 @@ export default function StartupForm() {
               >
                 Title
               </label>
+              {state?.errors?.title && (
+                <p className="text-red-500 text-sm my-3 italic">
+                  {state?.errors.title[0]}
+                </p>
+              )}
+
               <input
                 type="text"
                 id="title"
                 name="title"
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600"
                 required
-                onChange={handleChange}
                 placeholder="Startup Title"
               />
             </div>
@@ -62,13 +90,18 @@ export default function StartupForm() {
               >
                 Description
               </label>
+              {state?.errors?.description && (
+                <p className="text-red-500 text-sm my-3 italic">
+                  {state?.errors.description[0]}
+                </p>
+              )}
+
               <textarea
                 id="description"
                 name="description"
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600"
                 required
                 placeholder="Startup Description"
-                onChange={handleChange}
               />
             </div>
             <div>
@@ -78,13 +111,18 @@ export default function StartupForm() {
               >
                 Category
               </label>
+              {state?.errors?.category && (
+                <p className="text-red-500 text-sm my-3 italic">
+                  {state?.errors.category[0]}
+                </p>
+              )}
+
               <input
                 type="text"
                 id="category"
                 name="category"
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600"
                 required
-                onChange={handleChange}
                 placeholder="Startup category(Tech, Health, Education)"
               />
             </div>
@@ -95,13 +133,18 @@ export default function StartupForm() {
               >
                 Image URL
               </label>
+              {state?.errors?.image && (
+                <p className="text-red-500 text-sm my-3 italic">
+                  {state?.errors.image[0]}
+                </p>
+              )}
+
               <input
                 type="url"
                 id="image"
                 name="image"
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600"
                 required
-                onChange={handleChange}
                 placeholder="Startup Image URL"
               />
             </div>
@@ -112,6 +155,12 @@ export default function StartupForm() {
               >
                 Pitch
               </label>
+              {state?.errors?.pitch && (
+                <p className="text-red-500 text-sm my-3 italic">
+                  {state?.errors.pitch[0]}
+                </p>
+              )}
+
               <MDEditor
                 value={pitch}
                 onChange={(value) => setPitch(value as string)}

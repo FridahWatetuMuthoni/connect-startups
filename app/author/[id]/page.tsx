@@ -2,14 +2,15 @@ import React from "react";
 import { client } from "../../../sanity/lib/client";
 import { AUTHOR_QUERY_WITH_ID } from "../../../sanity/lib/queries";
 import Image from "next/image";
+import UserStartups from "@/components/UserStartups";
 
 async function page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const user = await client.fetch(AUTHOR_QUERY_WITH_ID, { id });
   return (
-    <div className="h-[500px] w-full flex items-center justify-center">
+    <div className="h-fit px-10 md:p-2 w-full flex items-center justify-center flex-col ">
       {/* Author card */}
-      <div className="relative w-full max-w-2xl my-8 md:my-16 flex flex-col items-start space-y-4 sm:flex-row sm:space-y-0 sm:space-x-6 px-4 py-8 border-2 border-dashed border-gray-400 shadow-lg rounded-lg">
+      <div className="relative w-full max-w-2xl my-8  flex flex-col items-start space-y-4 sm:flex-row sm:space-y-0 sm:space-x-6 px-4 py-8 border-2 border-dashed border-gray-400 shadow-lg rounded-lg">
         <span className="absolute text-xs font-medium top-0 left-0 rounded-br-lg rounded-tl-lg px-2 py-1 bg-primary-100  border-gray-400  border-b-2 border-r-2 border-dashed ">
           author
         </span>
@@ -78,6 +79,7 @@ async function page({ params }: { params: Promise<{ id: string }> }) {
           </div>
         </div>
       </div>
+      <UserStartups id={id} />
     </div>
   );
 }

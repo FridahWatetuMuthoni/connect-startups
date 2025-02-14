@@ -1,8 +1,8 @@
 "use client";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import React, { useState } from "react";
-import { login } from "../../../lib/actions/auth";
+import { social_login } from "../../../lib/actions/auth";
 import axios from "axios";
 import { User } from "../../../types/register";
 
@@ -10,14 +10,15 @@ function Register() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/";
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
 
   const [formData, setFormData] = useState<User>({
-    id: "",
     email: "",
     name: "",
     password1: "",
     password2: "",
   });
+  const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value.trim() });
@@ -27,17 +28,31 @@ function Register() {
     e.preventDefault();
 
     try {
-      formData.id = new Date().getTime().toString();
       const response = await axios.post("/api/auth", formData, {
         headers: { "Content-Type": "application/json" },
       });
       if (response.status === 200) {
         console.log("user created");
+        router.push("/login");
       } else {
         console.log("something wrong happened" + response.status);
+        setError(response?.data?.message);
       }
     } catch (error) {
-      console.log(error);
+      if (axios.isAxiosError(error)) {
+        // Extract error message
+        const errorMessage =
+          error.response?.data?.message || // Custom API error message
+          error.response?.data?.error || // Sometimes errors are stored under "error"
+          error.response?.statusText || // Fallback to HTTP status text
+          "An unexpected error occurred";
+
+        console.log("Axios error:", errorMessage);
+        setError(errorMessage);
+      } else {
+        console.error("Unexpected error:", error);
+        setError("An unexpected error occurred");
+      }
     }
   };
 
@@ -55,7 +70,7 @@ function Register() {
 
           <div className="mt-7 flex gap-2 items-center justify-center">
             <button
-              onClick={() => login("github", callbackUrl)}
+              onClick={() => social_login("github", callbackUrl)}
               className="inline-flex h-10 w-full items-center justify-center gap-2 rounded border border-slate-300 bg-white p-2 text-xs font-medium text-black outline-none focus:ring-2 focus:ring-[#333] focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <Image
@@ -69,7 +84,7 @@ function Register() {
             </button>
 
             <button
-              onClick={() => login("google", callbackUrl)}
+              onClick={() => social_login("google", callbackUrl)}
               className="inline-flex h-10 w-full items-center justify-center gap-2 rounded border border-slate-300 bg-white p-2 text-xs font-medium text-black outline-none focus:ring-2 focus:ring-[#333] focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <Image
@@ -93,6 +108,11 @@ function Register() {
             </div>
           </div>
           {/* Form */}
+          {error && (
+            <p className="text-red-500 text-sm my-3 italic text-center">
+              {error}
+            </p>
+          )}
           <form className="space-y-6" onSubmit={handleSubmit}>
             <section className="flex items-center justify-center gap-2">
               {/* email and name */}

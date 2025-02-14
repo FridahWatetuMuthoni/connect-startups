@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
-    const { id, name, email, password1, password2 } = await req.json();
+    const { name, email, password1, password2 } = await req.json();
 
     if (!name || !email || !password1 || !password2) {
       return NextResponse.json(
@@ -20,20 +20,19 @@ export async function POST(req: NextRequest) {
       );
     }
     const userexists = await client.fetch(
-      `*[_type=='author' && id==$id && email==$email][]`,
-      { id, email }
+      `*[_type=='author' && email==$email][0]`,
+      { email }
     );
     if (userexists) {
       return NextResponse.json(
         {
-          message: "User already exist",
+          message: "User already exist. Try registering using another email",
         },
         { status: 400 }
       );
     } else {
       const user = await writeClient.create({
         _type: "author",
-        id,
         name,
         email,
         username: name,

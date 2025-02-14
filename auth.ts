@@ -8,6 +8,7 @@ import {
   AUTHOR_BY_GOOGLE_ID_QUERY,
 } from "./sanity/lib/queries";
 import { writeClient } from "./sanity/lib/write-client";
+import { CustomAuthError } from "./errors";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -34,40 +35,29 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         email: string;
         password: string;
       }) {
-        const user = await client.fetch(
-          `*[_type=='author' && email==$email][0]`,
-          {
-            email: email,
-          }
-        );
+        let user = null;
 
-        console.log(user);
+        user = await client
+          .withConfig({ useCdn: false })
+          .fetch(`*[_type=='author' && email==$email][0]`, {
+            email: email,
+          });
 
         if (!user) {
-          throw new Error("User not found");
+          throw new CustomAuthError("Invalid email or password");
         }
         const isValid = password === user.password;
         if (!isValid) {
-          throw new Error("Invalid Credentials");
+          throw new CustomAuthError("Invalid email or password");
         }
 
-        console.log(isValid);
-
-        return {
-          id: user._id,
-          name: user.name,
-          email: user.email,
-          bio: user.bio,
-          image: user.image,
-          authorId: user._id, // Include the authorId in user session
-        };
+        return user;
       },
     }),
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
       if (account?.provider === "credentials") {
-        console.log("Logging in with credentials...");
         return true; // Allow sign-in with email/password
       }
 
@@ -88,8 +78,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         .fetch(query, {
           [providerKey]: String(providerId),
         });
-
-      console.log(`Existing user ${existingUser}`);
 
       if (!existingUser) {
         const idField =
@@ -127,7 +115,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (user) {
           token.id = user._id;
         }
+      } else {
+        const email = token.email;
+        const name = token.name;
+
+        const user = await client
+          .withConfig({ useCdn: false })
+          .fetch(`*[_type=='author' && email==$email && name==$name][0]`, {
+            email: email,
+            name: name,
+          });
+        if (user) {
+          token.id = user._id;
+        }
       }
+
       return token;
     },
 
