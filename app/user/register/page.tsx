@@ -5,12 +5,14 @@ import React, { useState } from "react";
 import { social_login } from "../../../lib/actions/auth";
 import axios from "axios";
 import { User } from "../../../types/register";
+import Loading from "@/components/Loading";
 
 function Register() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/";
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  let isLoading = false;
 
   const [formData, setFormData] = useState<User>({
     email: "",
@@ -26,6 +28,7 @@ function Register() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    isLoading = true;
 
     try {
       const response = await axios.post("/api/auth", formData, {
@@ -33,6 +36,7 @@ function Register() {
       });
       if (response.status === 200) {
         console.log("user created");
+        isLoading = false;
         router.push("user/login");
       } else {
         console.log("something wrong happened" + response.status);
@@ -55,6 +59,10 @@ function Register() {
       }
     }
   };
+
+  if (isLoading) {
+    return <Loading />;
+  }
 
   return (
     <div className="min-h-screen bg-white flex flex-col justify-center py-12 sm:px-6 lg:px-8">

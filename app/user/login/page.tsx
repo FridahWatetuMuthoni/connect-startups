@@ -4,6 +4,7 @@ import Image from "next/image";
 import React, { useState } from "react";
 import { social_login } from "../../../lib/actions/auth";
 import { signIn } from "next-auth/react";
+import Loading from "@/components/Loading";
 
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -16,6 +17,7 @@ function Login() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("search") || "/";
   const router = useRouter();
+  let isLoading = false;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUser({ ...user, [e.target.name]: e.target.value });
@@ -23,6 +25,7 @@ function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    isLoading = true;
 
     const result = await signIn("credentials", {
       email: user.email,
@@ -38,6 +41,7 @@ function Login() {
         setError("Something went wrong, refresh and try again");
       }
     } else {
+      isLoading = false;
       router.push("/");
       router.refresh();
     }
@@ -54,6 +58,9 @@ function Login() {
     //   router.push("/");
     // }
   };
+  if (isLoading) {
+    return <Loading />;
+  }
 
   return (
     <div className="min-h-screen bg-white flex flex-col justify-center py-12 sm:px-6 lg:px-8">

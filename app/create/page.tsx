@@ -5,6 +5,7 @@ import { formSchema } from "../../lib/validation";
 import { ZodError } from "zod";
 import { useRouter } from "next/navigation";
 import { createPitch } from "../../lib/actions/startup";
+import Loading from "@/components/Loading";
 
 export default function StartupForm() {
   const [pitch, setPitch] = useState("");
@@ -26,7 +27,6 @@ export default function StartupForm() {
       };
 
       await formSchema.parseAsync(formValues);
-      console.log(formValues);
 
       const result = await createPitch(prevState, formData, pitch);
       if (result.status == "SUCCESS") {
@@ -49,6 +49,10 @@ export default function StartupForm() {
     handleFormSubmit,
     initialState
   );
+
+  if (isPending) {
+    return <Loading />;
+  }
 
   return (
     <div className="min-h-screen bg-white flex flex-col justify-center py-12 sm:px-6 lg:px-8">
