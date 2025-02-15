@@ -37,7 +37,7 @@ function Register() {
       if (response.status === 200) {
         console.log("user created");
         isLoading = false;
-        router.push("user/login");
+        router.push("/user/login");
       } else {
         console.log("something wrong happened" + response.status);
         setError(response?.data?.message);
